@@ -79,7 +79,7 @@ app.post("/api/webhook", async (req, res) => {
     const stackTrace = data.item.last_occurrence?.custom?.stack || data.item.last_occurrence?.stack || '';
     const errorLocation = stackTrace ? stackTrace.split('\n')[0].trim() : '';
     
-    // ✅ IMPORTANT: For incoming webhooks, threadKey MUST be in the request body
+    // ✅ IMPORTANT: For incoming webhooks, threadKey MUST be in URL parameter only
     const message = {
         text: `${emoji} *${levelLabel} in Rollbar* ${emoji}\n` +
               `━━━━━━━━━━━━━━━━━━━━━━\n` +
@@ -91,10 +91,7 @@ app.post("/api/webhook", async (req, res) => {
               `*First Seen:* ${firstOccurred}\n` +
               `*Last Seen:* ${lastOccurred}\n` +
               `━━━━━━━━━━━━━━━━━━━━━━\n` +
-              `🔗 [View Full Error Details](${url})`,
-        thread: {
-            threadKey: threadKey
-        }
+              `🔗 [View Full Error Details](${url})`
     };
 
     // Add threadKey as URL parameter for maximum compatibility
