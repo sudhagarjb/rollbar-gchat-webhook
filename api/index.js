@@ -24,7 +24,22 @@ app.post("/api/webhook", async (req, res) => {
 
     const { level, title, project_id, counter, environment } = data.item;
     const url = data.item.url || "No URL provided";
-    const projectName = data.item.project_name || `Project-${project_id}`;
+    
+    // Extract project name from Rollbar URL
+    // URL format: https://rollbar.com/www.caratlane.com/order_fulfillment/items/3069/
+    let displayProjectName = `Project-${project_id}`; // fallback
+    try {
+        if (url && url.includes('rollbar.com/')) {
+            const urlParts = url.split('/');
+            // Find the part after the domain (e.g., "order_fulfillment" from "www.caratlane.com/order_fulfillment")
+            const domainIndex = urlParts.findIndex(part => part.includes('caratlane.com'));
+            if (domainIndex !== -1 && urlParts[domainIndex + 1]) {
+                displayProjectName = urlParts[domainIndex + 1];
+            }
+        }
+    } catch (error) {
+        console.log(`[${timestamp}] ⚠️ Could not parse project name from URL: ${url}`);
+    }
 
     // Map Rollbar numeric levels to string labels
     const levelMap = {
@@ -52,7 +67,7 @@ app.post("/api/webhook", async (req, res) => {
     const configuredThreadKey = process.env.GCHAT_THREAD_KEY; // e.g., "rollbar-global-thread"
     const threadKey = configuredThreadKey || `rollbar-item-${counter || project_id}`;
     
-    console.log(`[${timestamp}] 📊 PARSED_DATA project="${projectName}" environment="${environment}" level=${level}(${levelLabel}) counter=${counter || 'N/A'} threadKey="${threadKey}" title="${truncatedTitle.substring(0, 100)}..."`);
+    console.log(`[${timestamp}] 📊 PARSED_DATA project="${displayProjectName}" environment="${environment}" level=${level}(${levelLabel}) counter=${counter || 'N/A'} threadKey="${threadKey}" title="${truncatedTitle.substring(0, 100)}..."`);
 
     // Ignore non-critical errors (optional - uncomment to enable)
     // if (level !== "critical") {
@@ -82,9 +97,9 @@ app.post("/api/webhook", async (req, res) => {
     
     // ✅ IMPORTANT: For incoming webhooks, threadKey MUST be in URL parameter only
     const message = {
-        text: `${emoji} *${levelLabel} in Rollbar* ${emoji}\n` +
+        text: `🚨 ${emoji} *${levelLabel} in Rollbar* ${emoji} 🚨\n` +
               `━━━━━━━━━━━━━━━━━━━━━━\n` +
-              `*Project:* ${projectName}\n` +
+              `*Project:* ${displayProjectName}\n` +
               `*Environment:* ${environment}\n` +
               `*Error:* ${truncatedTitle}\n` +
               (errorLocation ? `*Location:* \`${errorLocation}\`\n` : '') +
