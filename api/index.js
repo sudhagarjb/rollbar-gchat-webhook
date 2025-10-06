@@ -51,8 +51,8 @@ app.post("/api/webhook", async (req, res) => {
     };
     const levelLabel = levelMap[level] || 'UNKNOWN';
     const levelEmoji = {
-        50: '🔴',
-        40: '🟠',
+        50: '🚨',
+        40: '🚨',
         30: '🟡',
         20: '🔵',
         10: '⚪'
@@ -97,7 +97,7 @@ app.post("/api/webhook", async (req, res) => {
     
     // ✅ IMPORTANT: For incoming webhooks, threadKey MUST be in URL parameter only
     const message = {
-        text: `🚨 ${emoji} *${levelLabel} in Rollbar* ${emoji} 🚨\n` +
+        text: `${emoji} *${levelLabel} in Rollbar* ${emoji}\n` +
               `━━━━━━━━━━━━━━━━━━━━━━\n` +
               `*Project:* ${displayProjectName}\n` +
               `*Environment:* ${environment}\n` +
