@@ -97,10 +97,13 @@ app.post("/api/webhook", async (req, res) => {
         }
     };
 
+    // Add threadKey as URL parameter for maximum compatibility
+    const webhookUrlWithThread = `${GOOGLE_CHAT_WEBHOOK}&threadKey=${threadKey}`;
+    
     console.log(`[${timestamp}] 📤 SENDING_TO_GCHAT threadKey="${threadKey}" occurrences=${occurrences}`);
 
     try {
-        const response = await axios.post(GOOGLE_CHAT_WEBHOOK, message);
+        const response = await axios.post(webhookUrlWithThread, message);
         
         console.log(`[${timestamp}] ✅ GCHAT_SUCCESS status=${response.status} threadName="${response.data?.thread?.name || 'N/A'}"`);
         
