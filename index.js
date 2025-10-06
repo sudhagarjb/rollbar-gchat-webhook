@@ -26,19 +26,17 @@ app.post("/api/webhook", async (req, res) => {
 
     // Google Chat Webhook URL
     const GOOGLE_CHAT_WEBHOOK = process.env.GCHAT_WEBHOOK_URL;
-    
-    // Append threadKey to the webhook URL for proper threading
-    const webhookUrlWithThread = `${GOOGLE_CHAT_WEBHOOK}&threadKey=${threadKey}`;
 
     const message = {
-        text: `🚨 *Critical Error in Rollbar* 🚨\n*Project:* ${projectName}\n*Error:* ${title}\n[View Error](${url})`
+        text: `🚨 *Critical Error in Rollbar* 🚨\n*Project:* ${projectName}\n*Error:* ${title}\n[View Error](${url})`,
+        thread: { threadKey } // Keeps messages in the same thread
     };
 
     try {
-        await axios.post(webhookUrlWithThread, message);
+        await axios.post(GOOGLE_CHAT_WEBHOOK, message);
         return res.status(200).json({ message: "Notification sent to Google Chat thread" });
     } catch (error) {
-        console.error("Error sending message:", error.message);
+        console.error("Error sending message:", error);
         return res.status(500).json({ error: "Failed to send notification" });
     }
 });
