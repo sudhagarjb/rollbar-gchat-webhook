@@ -66,9 +66,6 @@ app.post("/api/webhook", async (req, res) => {
         return res.status(500).json({ error: "Webhook URL not configured" });
     }
 
-    // ✅ IMPORTANT: For incoming webhooks, threadKey MUST be a URL parameter
-    const webhookUrlWithThread = `${GOOGLE_CHAT_WEBHOOK}&threadKey=${threadKey}`;
-
     // Get occurrence info and additional details
     const occurrences = data.item.total_occurrences || data.item.occurrences || 1;
     const firstOccurred = data.item.first_occurrence_timestamp 
@@ -82,6 +79,7 @@ app.post("/api/webhook", async (req, res) => {
     const stackTrace = data.item.last_occurrence?.custom?.stack || data.item.last_occurrence?.stack || '';
     const errorLocation = stackTrace ? stackTrace.split('\n')[0].trim() : '';
     
+    // ✅ IMPORTANT: For incoming webhooks, threadKey MUST be in the request body
     const message = {
         text: `${emoji} *${levelLabel} in Rollbar* ${emoji}\n` +
               `━━━━━━━━━━━━━━━━━━━━━━\n` +
@@ -93,13 +91,16 @@ app.post("/api/webhook", async (req, res) => {
               `*First Seen:* ${firstOccurred}\n` +
               `*Last Seen:* ${lastOccurred}\n` +
               `━━━━━━━━━━━━━━━━━━━━━━\n` +
-              `🔗 [View Full Error Details](${url})`
+              `🔗 [View Full Error Details](${url})`,
+        thread: {
+            threadKey: threadKey
+        }
     };
 
     console.log(`[${timestamp}] 📤 SENDING_TO_GCHAT threadKey="${threadKey}" occurrences=${occurrences}`);
 
     try {
-        const response = await axios.post(webhookUrlWithThread, message);
+        const response = await axios.post(GOOGLE_CHAT_WEBHOOK, message);
         
         console.log(`[${timestamp}] ✅ GCHAT_SUCCESS status=${response.status} threadName="${response.data?.thread?.name || 'N/A'}"`);
         

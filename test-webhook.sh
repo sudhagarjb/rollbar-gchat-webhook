@@ -1,0 +1,117 @@
+#!/bin/bash
+
+# Test webhook with real Rollbar payload
+# Usage: ./test-webhook.sh <your-vercel-url>
+
+if [ -z "$1" ]; then
+    echo "❌ Error: Please provide your Vercel URL"
+    echo "Usage: ./test-webhook.sh https://your-app.vercel.app"
+    exit 1
+fi
+
+WEBHOOK_URL="$1/api/webhook"
+
+echo "🚀 Testing webhook at: $WEBHOOK_URL"
+echo ""
+
+# Real Rollbar payload example
+curl -X POST "$WEBHOOK_URL" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "event_name": "new_item",
+  "data": {
+    "item": {
+      "id": 1705973674,
+      "project_id": 610915,
+      "counter": 3069,
+      "environment": "production",
+      "framework": 4,
+      "title": "Error while processing the message - {\"pick_slip_number\":null,\"pick_slip_line\":null,\"line_number\":3,\"barcode\":\"IF2MU08J2JN\",\"sales_order_number\":\"EZMUMMLR9213E\",\"sales_order_line_number\":\"3\",\"fulfilment_line_id\":300000069071680,\"item_number\":\"JN00358-YGS300-NA\"}",
+      "last_occurrence_id": 445223807081,
+      "last_occurrence_timestamp": 1759753809,
+      "total_occurrences": 2,
+      "unique_occurrences": null,
+      "status": 1,
+      "level": 40,
+      "resolved_in_version": null,
+      "assigned_user_id": null,
+      "group_status": 1,
+      "group_item_id": null,
+      "platform": 0,
+      "hash": "620621c2af04b9fbc4693cc61001c14b29959169",
+      "activating_occurrence_id": 445223805761,
+      "first_occurrence_timestamp": 1759753809,
+      "first_occurrence_id": 445223805761,
+      "integrations_data": {},
+      "public_item_id": null,
+      "title_lock": 0,
+      "level_lock": 0,
+      "last_activated_timestamp": 1759753809,
+      "last_resolved_timestamp": null,
+      "last_muted_timestamp": null,
+      "last_modified_by": 236365,
+      "snooze_type": null,
+      "snooze_status": null,
+      "snooze_expiration_threshold_seconds": null,
+      "snooze_expiration_datetime": null,
+      "last_occurrence": {
+        "timestamp": 1759753809,
+        "environment": "production",
+        "level": "error",
+        "language": "javascript",
+        "framework": "node-js",
+        "uuid": "b2320687-aaed-4610-c3ae-58ba8aa693fc",
+        "notifier": {
+          "name": "node_rollbar",
+          "version": "2.26.1",
+          "configured_options": {
+            "environment": "production",
+            "captureUncaught": true,
+            "captureUnhandledRejections": true
+          },
+          "diagnostic": {
+            "original_arg_types": ["string", "object"]
+          }
+        },
+        "custom": {
+          "stack": "Error: No Qty level information found\n    at SalesFlatOrderItemQtyService.getQtyDtlsByFullfillLineId (/opt/order-fulfillment/dist/modules/entities/sales-flat-order-item-qty/sales-flat-order-item-qty.service.js:193:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async PicklistStatusService.syncStatus (/opt/order-fulfillment/dist/modules/features/picking/picklist-status.service.js:37:23)\n    at async PicklistStatusUpdateResolver.consumeMessage (/opt/order-fulfillment/dist/modules/features/picking/picklist-status-update-resolver.js:38:21)\n    at async Runner.eachMessage (/opt/order-fulfillment/dist/common/providers/fusion-kafka.provider.js:58:25)"
+        },
+        "stack": "Error: No Qty level information found\n    at SalesFlatOrderItemQtyService.getQtyDtlsByFullfillLineId (/opt/order-fulfillment/dist/modules/entities/sales-flat-order-item-qty/sales-flat-order-item-qty.service.js:193:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async PicklistStatusService.syncStatus (/opt/order-fulfillment/dist/modules/features/picking/picklist-status.service.js:37:23)\n    at async PicklistStatusUpdateResolver.consumeMessage (/opt/order-fulfillment/dist/modules/features/picking/picklist-status-update-resolver.js:38:21)\n    at async Runner.eachMessage (/opt/order-fulfillment/dist/common/providers/fusion-kafka.provider.js:58:25)",
+        "server": {
+          "host": "order-fulfill-etlive-78b9f866bd-4vqb2",
+          "argv": ["/usr/local/bin/node", "/opt/order-fulfillment/dist/main.js"],
+          "pid": 1
+        },
+        "body": {
+          "message": {
+            "body": "Error while processing the message - {\"pick_slip_number\":null,\"pick_slip_line\":null,\"line_number\":3,\"barcode\":\"IF2MU08J2JN\",\"sales_order_number\":\"EZMUMMLR9213E\",\"sales_order_line_number\":\"3\",\"fulfilment_line_id\":300000069071680,\"item_number\":\"JN00358-YGS300-NA\",\"item_description\":\"Shimmering Sway Diamond Nose Wire\",\"transaction_quantity\":1,\"can_auto_invoice\":\"Yes\",\"order_type\":\"Store\",\"address_type\":\"Supply at Caratlane Store\",\"city\":\"Mumbai\",\"engraving\":\"N\",\"fc_priority\":null,\"engraving_status\":\"NA\",\"setting_status\":null,\"tray\":\"1-1-1-1\",\"serial_no\":null,\"status\":\"Confirmed\",\"delivery_flag\":\"FUTURE_DELIVERY\",\"edd\":\"01-OCT-25 02.30.00.000000 PM\",\"express_delivery\":null,\"preferred_order\":\"NO\",\"ship_direct\":\"YES\",\"picked_to_print\":\"0\",\"transaction_state\":\"RESERVED\",\"wave_number\":null,\"inventory_item_id\":100000251563785,\"organization_id\":300000006432877,\"subinventory_code\":\"FG MUMFC\",\"locator_id\":300000006648015,\"transaction_date\":\"18-SEP-25 12.19.08.000000 PM\",\"creation_date\":\"30-SEP-25 07.42.03.001000 AM\",\"created_by\":\"CL_INTEGRATION_USER_SAAS\",\"last_update_date\":\"06-OCT-25 12.28.03.000000 PM\",\"last_updated_by\":\"WKSP_XXCL_PRD\",\"transaction_id\":300000068049914,\"error_msg\":null,\"factory\":\"CL-FC-MUM-Navneet\",\"ship_from_location_id\":null,\"ship_to_location_id\":null}"
+          },
+          "telemetry": []
+        },
+        "context": "",
+        "metadata": {
+          "customer_timestamp": 1759753810,
+          "timestamp_ms": 1759753809722,
+          "access_token": "0a0ede1050b849cc94945e4b2ca79b0f",
+          "api_server_hostname": "k8s",
+          "debug": {
+            "routes": {
+              "start_time": 1759686885117,
+              "counters": {
+                "post_item": 536272
+              }
+            }
+          }
+        },
+        "retentionDays": 180
+      },
+      "url": "https://rollbar.com/www.caratlane.com/order_fulfillment/items/3069/"
+    }
+  }
+}'
+
+echo ""
+echo ""
+echo "✅ Request sent! Check your Google Chat for the message."
+echo "📊 Check Vercel logs with: vercel logs --follow"
+
