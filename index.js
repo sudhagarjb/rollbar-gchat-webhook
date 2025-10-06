@@ -7,9 +7,18 @@ app.use(express.json()); // Middleware to parse JSON requests
 app.post("/api/webhook", async (req, res) => {
     console.log("Received request:", JSON.stringify(req.body));
 
-    const { data } = req.body;
+    const { event_name, data } = req.body;
+
+    // Handle Rollbar test webhook
+    if (event_name === "test") {
+        console.log("Test webhook received from Rollbar");
+        return res.status(200).json({ message: "Test webhook received successfully!" });
+    }
+
+    // Validate actual error payload
     if (!data || !data.item) {
-        return res.status(400).json({ error: "Invalid payload" });
+        console.error("Invalid payload structure:", req.body);
+        return res.status(400).json({ error: "Invalid payload - missing data.item" });
     }
 
     const { level, title, project_id } = data.item;
@@ -19,24 +28,33 @@ app.post("/api/webhook", async (req, res) => {
     const projectName = data.item.project_name || `Project-${project_id}`;
     const threadKey = `rollbar-${projectName.replace(/\s+/g, "-").toLowerCase()}`;
 
-      // Ignore non-critical errors
-  // if (level !== "critical") {
-  //     return res.status(200).json({ message: "Ignoring non-critical errors" });
-  // }
+    // Ignore non-critical errors (optional - uncomment to enable)
+    // if (level !== "critical") {
+    //     return res.status(200).json({ message: "Ignoring non-critical errors" });
+    // }
 
     // Google Chat Webhook URL
     const GOOGLE_CHAT_WEBHOOK = process.env.GCHAT_WEBHOOK_URL;
 
+    if (!GOOGLE_CHAT_WEBHOOK) {
+        console.error("GCHAT_WEBHOOK_URL environment variable not set");
+        return res.status(500).json({ error: "Webhook URL not configured" });
+    }
+
+    // ✅ CRITICAL: Append threadKey as URL parameter for incoming webhooks
+    // This is the ONLY way to create threads with incoming webhooks
+    const webhookUrlWithThread = `${GOOGLE_CHAT_WEBHOOK}&threadKey=${threadKey}`;
+
     const message = {
-        text: `🚨 *Critical Error in Rollbar* 🚨\n*Project:* ${projectName}\n*Error:* ${title}\n[View Error](${url})`,
-        thread: { threadKey } // Keeps messages in the same thread
+        text: `🚨 *Critical Error in Rollbar* 🚨\n*Project:* ${projectName}\n*Error:* ${title}\n[View Error](${url})`
     };
 
     try {
-        await axios.post(GOOGLE_CHAT_WEBHOOK, message);
+        await axios.post(webhookUrlWithThread, message);
+        console.log(`Message sent to Google Chat thread: ${threadKey}`);
         return res.status(200).json({ message: "Notification sent to Google Chat thread" });
     } catch (error) {
-        console.error("Error sending message:", error);
+        console.error("Error sending message to Google Chat:", error.message);
         return res.status(500).json({ error: "Failed to send notification" });
     }
 });
