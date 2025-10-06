@@ -47,9 +47,10 @@ app.post("/api/webhook", async (req, res) => {
     // Truncate long titles
     const truncatedTitle = title.length > 200 ? title.substring(0, 200) + '...' : title;
 
-    // ✅ Use Rollbar Item Counter as Thread Key (groups same error together)
-    // This ensures each unique error gets its own thread, not all errors in one thread
-    const threadKey = `rollbar-item-${counter || project_id}`;
+    // ✅ Threading strategy
+    // Prefer a constant thread when env var is provided; else fallback to error counter based thread
+    const configuredThreadKey = process.env.GCHAT_THREAD_KEY; // e.g., "rollbar-global-thread"
+    const threadKey = configuredThreadKey || `rollbar-item-${counter || project_id}`;
     
     console.log(`[${timestamp}] 📊 PARSED_DATA project="${projectName}" environment="${environment}" level=${level}(${levelLabel}) counter=${counter || 'N/A'} threadKey="${threadKey}" title="${truncatedTitle.substring(0, 100)}..."`);
 
@@ -94,8 +95,8 @@ app.post("/api/webhook", async (req, res) => {
               `🔗 [View Full Error Details](${url})`
     };
 
-    // Add threadKey as URL parameter for maximum compatibility
-    const webhookUrlWithThread = `${GOOGLE_CHAT_WEBHOOK}&threadKey=${threadKey}`;
+    // Add threadKey and messageReplyOption for reliable threading behavior
+    const webhookUrlWithThread = `${GOOGLE_CHAT_WEBHOOK}&threadKey=${encodeURIComponent(threadKey)}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD`;
     
     console.log(`[${timestamp}] 📤 SENDING_TO_GCHAT threadKey="${threadKey}" occurrences=${occurrences}`);
 
